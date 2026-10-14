@@ -263,6 +263,9 @@ def run_now():
 
 def scheduler_loop(period: int = 3600):
     STATE["started_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    # заходы, оборванные перезапуском сервиса, не должны висеть «running»
+    db.x("UPDATE runs SET status='interrupted', message='перезапуск сервиса' "
+         "WHERE status='running'")
     while not _stop.is_set():
         tick()
         nxt = time.time() + period

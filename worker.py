@@ -131,15 +131,14 @@ def _mc_lead_slug(g: dict) -> str | None:
 
 
 def _summaries(llm: LLM, counters: dict):
-    """Резюме по отзывам: создаётся при появлении, обновляется при росте отзывов."""
+    """Резюме по отзывам: создаётся при появлении, обновляется при росте отзывов
+    и досчитывается до LLM-версии, когда появляется бюджет."""
     set_stage("summarize", "running")
     rows = db.q("""
         SELECT g.id, g.title,
                COALESCE(s.critic_seen,-1) cs, COALESCE(s.user_seen,-1) us
         FROM games g LEFT JOIN game_summaries s ON s.game_id=g.id
-        WHERE s.game_id IS NULL OR s.critic_seen IS NULL
-           OR EXISTS(SELECT 1 FROM review_quotes q WHERE q.game_id=g.id AND q.kind='critic')
-        ORDER BY g.id DESC LIMIT 60
+        ORDER BY s.updated_at IS NULL DESC, s.updated_at ASC
     """)
     for row in rows:
         gid = row["id"]
@@ -177,7 +176,9 @@ def _letsplays(llm: LLM, counters: dict):
     rows = db.q("""
         SELECT g.id, g.title FROM games g
         LEFT JOIN letsplay l ON l.game_id=g.id
-        WHERE l.game_id IS NULL OR (l.conclusion IS NULL AND l.error IS NULL)
+        WHERE l.game_id IS NULL
+           OR (l.conclusion IS NULL AND l.error IS NULL)
+           OR (l.error IS NOT NULL AND l.updated_at < datetime('now', '-1 day'))
         ORDER BY g.id DESC LIMIT ?
     """, (LETSPPLAY_PER_RUN,))
     for row in rows:

@@ -25,6 +25,7 @@
         <tr><td>Обработано сегодня</td><td id="c-today">—</td></tr>
         <tr><td>Игр с резюме</td><td id="c-summaries">—</td></tr>
         <tr><td>Игр с летсплеем</td><td id="c-letsplays">—</td></tr>
+        <tr><td>Летсплеев в очереди</td><td id="c-queue">—</td></tr>
         <tr><td>Прогон сейчас</td><td id="c-progress">—</td></tr>
         <tr><td>LLM-вызовов сегодня</td><td id="c-llm">—</td></tr>
       </table>
@@ -70,6 +71,7 @@ async function refresh() {
     document.getElementById('c-today').textContent = d.counts.games_today;
     document.getElementById('c-summaries').textContent = d.counts.summaries;
     document.getElementById('c-letsplays').textContent = d.counts.letsplays;
+    document.getElementById('c-queue').textContent = d.counts.letsplay_queue ?? '—';
     document.getElementById('c-progress').textContent =
       d.state.progress.total ? (d.state.progress.processed + ' / ' + d.state.progress.total) : '—';
     document.getElementById('c-llm').textContent =

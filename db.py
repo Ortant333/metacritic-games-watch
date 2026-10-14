@@ -302,4 +302,7 @@ def counts():
     gd = q("SELECT COUNT(*) c FROM games WHERE day_key=?", (today,))[0]["c"]
     s = q("SELECT COUNT(*) c FROM game_summaries")[0]["c"]
     sl = q("SELECT COUNT(*) c FROM letsplay WHERE conclusion IS NOT NULL")[0]["c"]
-    return {"games": g, "games_today": gd, "summaries": s, "letsplays": sl}
+    queue = q("""SELECT COUNT(*) c FROM games g LEFT JOIN letsplay l ON l.game_id=g.id
+                 WHERE l.game_id IS NULL OR (l.conclusion IS NULL AND l.error IS NULL)""")[0]["c"]
+    return {"games": g, "games_today": gd, "summaries": s, "letsplays": sl,
+            "letsplay_queue": queue}

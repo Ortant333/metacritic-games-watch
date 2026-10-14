@@ -1,0 +1,11 @@
+venv/
+data/
+cache/
+__pycache__/
+*.pyc
+.env
+mc_cache.tar.gz
+idx_check.html
+card_check.html
+probe*.py
+diag_*.py

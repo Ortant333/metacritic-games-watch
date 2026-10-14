@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Metacritic Games Watch{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">Metacritic Games Watch</a>
+  <nav>
+    <a href="/">Игры</a>
+    <a href="/monitor">Мониторинг</a>
+  </nav>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer class="foot">Сервис тестового задания: обход Metacritic раз в час, база, резюме отзывов, летсплеи.</footer>
+</body>
+</html>

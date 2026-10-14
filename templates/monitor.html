@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Мониторинг — Metacritic Games Watch{% endblock %}
+{% block content %}
+<section class="monitor">
+  <div class="mon-head">
+    <h1>Мониторинг работы сервиса</h1>
+    <button id="run-now" class="run-btn">Запустить обработку</button>
+    <span id="run-result" class="muted"></span>
+  </div>
+
+  <div class="mon-grid">
+    <div class="mon-box">
+      <h3>Воркеры</h3>
+      <table class="mon-table">
+        <tr><td>Сбор (ingest)</td><td id="st-ingest">—</td></tr>
+        <tr><td>Резюме отзывов</td><td id="st-summarize">—</td></tr>
+        <tr><td>Летсплеи</td><td id="st-letsplay">—</td></tr>
+        <tr><td>Планировщик</td><td id="st-sched">—</td></tr>
+      </table>
+    </div>
+    <div class="mon-box">
+      <h3>Счётчики</h3>
+      <table class="mon-table">
+        <tr><td>Игр в базе</td><td id="c-games">—</td></tr>
+        <tr><td>Обработано сегодня</td><td id="c-today">—</td></tr>
+        <tr><td>Игр с резюме</td><td id="c-summaries">—</td></tr>
+        <tr><td>Игр с летсплеем</td><td id="c-letsplays">—</td></tr>
+        <tr><td>Прогон сейчас</td><td id="c-progress">—</td></tr>
+        <tr><td>LLM-вызовов сегодня</td><td id="c-llm">—</td></tr>
+      </table>
+    </div>
+    <div class="mon-box wide">
+      <h3>Журнал (последние события)</h3>
+      <pre id="log" class="log">—</pre>
+    </div>
+    <div class="mon-box wide">
+      <h3>История заходов</h3>
+      <table class="mon-table" id="runs">
+        <thead><tr><th>Начало</th><th>Статус</th><th>Игр</th><th>+ база</th><th>Резюме</th><th>Летсплеи</th><th>Комментарий</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+function renderStage(el, st) {
+  if (!st) return;
+  const badge = {idle: 'idle', running: 'run', done: 'ok', error: 'err'}[st.status] || 'idle';
+  el.innerHTML = '<span class="pill ' + badge + '">' + esc(st.status) + '</span> ' + esc(st.detail || '');
+}
+
+async function refresh() {
+  try {
+    const r = await fetch('/api/status');
+    const d = await r.json();
+    const st = d.state.stages || {};
+    renderStage(document.getElementById('st-ingest'), st.ingest);
+    renderStage(document.getElementById('st-summarize'), st.summarize);
+    renderStage(document.getElementById('st-letsplay'), st.letsplay);
+    const sched = document.getElementById('st-sched');
+    sched.textContent = d.state.running
+      ? 'заход идёт'
+      : 'следующий заход в ' + (d.state.next_tick || '?') + ' UTC';
+    document.getElementById('c-games').textContent = d.counts.games;
+    document.getElementById('c-today').textContent = d.counts.games_today;
+    document.getElementById('c-summaries').textContent = d.counts.summaries;
+    document.getElementById('c-letsplays').textContent = d.counts.letsplays;
+    document.getElementById('c-progress').textContent =
+      d.state.progress.total ? (d.state.progress.processed + ' / ' + d.state.progress.total) : '—';
+    document.getElementById('c-llm').textContent =
+      d.llm.calls_today + ' из ' + d.llm.budget + (d.llm.enabled ? '' : ' (API не подключён)');
+    document.getElementById('log').textContent = (d.state.log || []).slice(-25).join('\n') || '—';
+    const tb = document.querySelector('#runs tbody');
+    tb.innerHTML = (d.runs || []).map(r =>
+      '<tr><td>' + esc(r.started_at) + '</td><td>' + esc(r.status) + '</td><td>' +
+      esc(r.games_seen) + '</td><td>' + esc(r.games_added) + '</td><td>' +
+      esc(r.summaries_made) + '</td><td>' + esc(r.letsplay_made) + '</td><td>' +
+      esc(r.message || '') + '</td></tr>').join('');
+  } catch (e) {}
+}
+
+document.getElementById('run-now').addEventListener('click', async () => {
+  const r = await fetch('/api/run-now', {method: 'POST'});
+  const d = await r.json();
+  document.getElementById('run-result').textContent = d.detail || '';
+  refresh();
+});
+
+refresh();
+setInterval(refresh, 2000);
+</script>
+{% endblock %}

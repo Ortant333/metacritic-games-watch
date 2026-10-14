@@ -1,0 +1,17 @@
+[Unit]
+Description=Metacritic Games Watch (test task)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/jobsearch/skytek_test
+EnvironmentFile=/opt/jobsearch/skytek_test/.env
+ExecStart=/opt/jobsearch/skytek_test/venv/bin/python main.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/opt/jobsearch/skytek_test/data/service.log
+StandardError=append:/opt/jobsearch/skytek_test/data/service.log
+
+[Install]
+WantedBy=multi-user.target

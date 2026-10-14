@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ g.title }} — Metacritic Games Watch{% endblock %}
+{% block content %}
+<article class="card">
+  <div class="card-head">
+    {% if g.cover_url %}<img class="card-cover" src="{{ g.cover_url }}" alt="">{% endif %}
+    <div>
+      <h1>{{ g.title }}</h1>
+      <div class="badges">
+        {% if g.metascore is not none %}<span class="badge meta" title="{{ g.metascore_sentiment or '' }}">{{ g.metascore }}</span><span class="muted">Metascore{% if g.metascore_reviews %} ({{ g.metascore_reviews }} рецензий){% endif %}</span>{% endif %}
+        {% if g.userscore is not none %}<span class="badge user" title="{{ g.userscore_sentiment or '' }}">{{ g.userscore }}</span><span class="muted">Userscore{% if g.user_reviews %} ({{ g.user_reviews }} отзывов){% endif %}</span>{% endif %}
+      </div>
+      <dl class="meta-list">
+        {% if g.lead_platform %}<dt>Ведущая платформа</dt><dd>{{ g.lead_platform }}</dd>{% endif %}
+        {% if g.developer %}<dt>Разработчик</dt><dd>{{ g.developer }}</dd>{% endif %}
+        {% if g.publisher %}<dt>Издатель</dt><dd>{{ g.publisher }}</dd>{% endif %}
+        {% if g.release_date %}<dt>Дата релиза</dt><dd>{{ g.release_date }}</dd>{% endif %}
+        {% if g.rating %}<dt>Рейтинг</dt><dd>{{ g.rating }}</dd>{% endif %}
+        {% if g.genres %}<dt>Жанры</dt><dd>{{ g.genres }}</dd>{% endif %}
+        {% if g.video_url %}<dt>Видео</dt><dd><a href="{{ g.video_url }}" target="_blank" rel="noopener">{{ g.video_title or 'ролик на Metacritic' }}</a></dd>{% endif %}
+      </dl>
+    </div>
+  </div>
+
+  {% if g.description %}
+  <h2>Описание</h2>
+  <p class="desc">{{ g.description }}</p>
+  {% endif %}
+
+  <h2>Платформы и оценки</h2>
+  <table class="plat-table">
+    <thead><tr><th>Платформа</th><th>Metascore</th><th>Рецензий</th><th>Userscore</th><th>Отзывов</th></tr></thead>
+    <tbody>
+    {% for p in g.platforms %}
+    <tr>
+      <td>{{ p.name }}</td>
+      <td>{% if p.metascore is not none %}{{ p.metascore }}{% else %}—{% endif %}</td>
+      <td>{{ p.metascore_reviews or '—' }}</td>
+      <td>{% if p.userscore is not none %}{{ p.userscore }}{% else %}—{% endif %}</td>
+      <td>{{ p.user_reviews or '—' }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Резюме по отзывам</h2>
+  <div class="two-col">
+    <section>
+      <h3>Критики</h3>
+      <p>{{ g.summary.critic_summary if g.summary and g.summary.critic_summary else 'пока нет данных' }}</p>
+    </section>
+    <section>
+      <h3>Игроки</h3>
+      <p>{{ g.summary.user_summary if g.summary and g.summary.user_summary else 'пока нет данных' }}</p>
+    </section>
+  </div>
+
+  {% if g.letsplay and g.letsplay.conclusion %}
+  <h2>Летсплей на YouTube</h2>
+  <p>
+    <a href="{{ g.letsplay.video_url }}" target="_blank" rel="noopener">{{ g.letsplay.video_title }}</a>
+    {% if g.letsplay.channel %}<span class="muted">— канал {{ g.letsplay.channel }}{% if g.letsplay.views %}, {{ g.letsplay.views }} просмотров{% endif %}</span>{% endif %}
+  </p>
+  <p class="desc">{{ g.letsplay.conclusion }}</p>
+  {% endif %}
+
+  {% if similar %}
+  <h2>Похожие игры</h2>
+  <ul class="similar">
+    {% for s in similar %}
+    <li>
+      <a href="/game/{{ s.id }}">{{ s.title }}</a>
+      <span class="muted">
+        {% if s.metascore is not none %}мета {{ s.metascore }}{% endif %}
+        {% if s.userscore is not none %} · юзер {{ s.userscore }}{% endif %}
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <details>
+    <summary>Отзывы критиков ({{ critic_quotes|length }})</summary>
+    {% for q in critic_quotes %}
+    <blockquote>{{ q.quote }}<footer>{{ q.publication or q.author or 'рецензия' }}{% if q.score is not none %} — {{ q.score }}{% endif %}</footer></blockquote>
+    {% endfor %}
+  </details>
+  <details>
+    <summary>Отзывы игроков ({{ user_quotes|length }})</summary>
+    {% for q in user_quotes %}
+    <blockquote>{{ q.quote }}<footer>{{ q.author or 'игрок' }}{% if q.score is not none %} — {{ q.score }}{% endif %}</footer></blockquote>
+    {% endfor %}
+  </details>
+</article>
+{% endblock %}

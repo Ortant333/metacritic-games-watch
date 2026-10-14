@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="toolbar">
+  <form method="get" action="/">
+    <input type="search" name="q" value="{{ q }}" placeholder="Поиск по названию игры">
+    <select name="platform">
+      <option value="">Все платформы</option>
+      {% for p in platforms %}
+      <option value="{{ p }}" {% if p == platform %}selected{% endif %}>{{ p }}</option>
+      {% endfor %}
+    </select>
+    <select name="sort">
+      <option value="metascore_desc" {% if sort == 'metascore_desc' %}selected{% endif %}>Metascore: по убыванию</option>
+      <option value="metascore_asc" {% if sort == 'metascore_asc' %}selected{% endif %}>Metascore: по возрастанию</option>
+      <option value="userscore_desc" {% if sort == 'userscore_desc' %}selected{% endif %}>Userscore: по убыванию</option>
+      <option value="userscore_asc" {% if sort == 'userscore_asc' %}selected{% endif %}>Userscore: по возрастанию</option>
+      <option value="title_asc" {% if sort == 'title_asc' %}selected{% endif %}>По названию</option>
+      <option value="date_desc" {% if sort == 'date_desc' %}selected{% endif %}>По дате релиза</option>
+    </select>
+    <button type="submit">Показать</button>
+  </form>
+  <div class="counts">
+    В базе: <b>{{ counts.games }}</b> игр,
+    сегодня обработано: <b>{{ counts.games_today }}</b>,
+    с резюме: <b>{{ counts.summaries }}</b>,
+    с летсплеем: <b>{{ counts.letsplays }}</b>
+  </div>
+</section>
+
+<table class="games">
+  <thead>
+  <tr>
+    <th></th>
+    <th>Игра</th>
+    <th>Платформы</th>
+    <th>Metascore</th>
+    <th>Userscore</th>
+    <th>Релиз</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for g in games %}
+  <tr>
+    <td class="cover">{% if g.cover_url %}<img src="{{ g.cover_url }}" alt="" loading="lazy">{% endif %}</td>
+    <td>
+      <a class="title" href="/game/{{ g.id }}">{{ g.title }}</a>
+      {% if g.developer %}<div class="muted">{{ g.developer }}</div>{% endif %}
+      {% if g.genres %}<div class="muted small">{{ g.genres }}</div>{% endif %}
+    </td>
+    <td>
+      {% for p in g.platforms if p.name %}<span class="tag">{{ p.name }}</span>{% endfor %}
+    </td>
+    <td class="score">
+      {% if g.metascore is not none %}<span class="badge meta">{{ g.metascore }}</span>{% else %}<span class="muted">—</span>{% endif %}
+    </td>
+    <td class="score">
+      {% if g.userscore is not none %}<span class="badge user">{{ g.userscore }}</span>{% else %}<span class="muted">—</span>{% endif %}
+    </td>
+    <td class="muted">{{ g.release_date or '—' }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6" class="muted">База пока пуста - сервис заполнит её первым же заходом.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

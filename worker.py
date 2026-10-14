@@ -179,7 +179,7 @@ def _letsplays(llm: LLM, counters: dict):
         WHERE l.game_id IS NULL
            OR (l.conclusion IS NULL AND l.error IS NULL)
            OR (l.error IS NOT NULL AND l.updated_at < datetime('now', '-1 day'))
-        ORDER BY g.id DESC LIMIT ?
+        ORDER BY g.id ASC LIMIT ?
     """, (LETSPPLAY_PER_RUN,))
     for row in rows:
         try:
